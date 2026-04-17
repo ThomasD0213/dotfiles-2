@@ -135,7 +135,11 @@ if [ "$CHANGED" -eq 0 ]; then
 fi
 
 printf "==> Linking tmux.conf\n"
-if [ -f "$HOME/.config/tmux/tmux.conf" ] || [ -L "$HOME/.config/tmux/tmux.conf" ]; then
+mkdir -p "$HOME/.config/tmux"
+if [ -L "$HOME/.config/tmux/tmux.conf" ]; then
+    printf "  Removing existing symlink\n"
+    rm "$HOME/.config/tmux/tmux.conf"
+elif [ -f "$HOME/.config/tmux/tmux.conf" ]; then
     TBAK="$HOME/.config/tmux/tmux.conf.bak"
     N=1
     while [ -f "$TBAK" ]; do
@@ -145,11 +149,12 @@ if [ -f "$HOME/.config/tmux/tmux.conf" ] || [ -L "$HOME/.config/tmux/tmux.conf" 
     printf "  Backing up existing tmux.conf to %s\n" "$(basename "$TBAK")"
     mv "$HOME/.config/tmux/tmux.conf" "$TBAK"
 fi
-mkdir -p "$HOME/.config/tmux"
 ln -s "$DOTFILES_DIR/tmux.conf" "$HOME/.config/tmux/tmux.conf"
 
 # --- install tmux plugins via TPM ---
 printf "==> Installing tmux plugins\n"
+export TMUX_PLUGIN_MANAGER_PATH="$HOME/.config/tmux/plugins"
+tmux start-server \; source-file "$HOME/.config/tmux/tmux.conf" \; kill-server
 "$HOME/.config/tmux/plugins/tpm/bin/install_plugins"
 
 printf "\nDone! Start a new zsh session to pick up changes.\n"
